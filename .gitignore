@@ -265,3 +265,4 @@ test-driver
 /ylwrap
 
 /cmake_*
+compiler/cpp/lex.yythriftl.cc
