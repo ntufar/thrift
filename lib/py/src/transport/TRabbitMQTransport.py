@@ -13,7 +13,7 @@ class TRabbitMQTransportClient(TTransportBase):
     self.connection = pika.BlockingConnection(pika.ConnectionParameters(
             host='localhost'))
     self.channel = self.connection.channel()
-    self.channel.queue_declare(queue='rpc_queue')
+    self.channel.queue_declare(queue=queue)
 
     result = self.channel.queue_declare(exclusive=True)
     self.callback_queue = result.method.queue
@@ -41,13 +41,13 @@ class TRabbitMQTransportClient(TTransportBase):
     return read(sz)
 
   def read(self, sz):
-    print "TRabbitMQTransportClient.read()"
+    #print "TRabbitMQTransportClient.read()"
     while self.response is None:
       self.connection.process_data_events()
     return self.response
 
   def write(self, buff):
-    print "TRabbitMQTransportClient.write()"
+    #print "TRabbitMQTransportClient.write()"
     self.response = None
     self.corr_id = str(uuid.uuid4())
     self.channel.basic_publish(exchange='',
@@ -62,11 +62,11 @@ class TRabbitMQTransportClient(TTransportBase):
     pass
 
   def listen(self):
-    print "TRabbitMQTransportClient.listen()"
+    #print "TRabbitMQTransportClient.listen()"
     pass
 
   def accept(self):
-    print "TRabbitMQTransportClient.accept()"
+    #print "TRabbitMQTransportClient.accept()"
     while self.response is None:
       self.connection.process_data_events()
 
@@ -77,26 +77,26 @@ class ServerListeningThread(threading.Thread):
     threading.Thread.__init__(self)
     self.parent = parent
     self.queue = queue
-    self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=host))
     self.channel = self.connection.channel()
     self.channel.queue_declare(queue)
     self.channel.basic_qos(prefetch_count=1)
-    self.channel.basic_consume(self.on_data, no_ack=False,
-                                   queue=self.queue)
     
 
   def run(self):
     print "ServerListeningThread.run()"
+    self.channel.basic_consume(self.on_data, no_ack=False, queue=self.queue)
     self.channel.start_consuming()
-    print "START CONSUMING FINISHED"
+    #print "START CONSUMING FINISHED"
 
   def on_data(self, ch, method, props, body):
-    print "TRabbitMQTransportServer.on_data()"
+    if self.parent.debug:
+      print "TRabbitMQTransportServer.on_data()"
     self.reply_to = props.reply_to
     self.corr_id  = props.correlation_id
     self.parent.data = body
     ch.basic_ack(delivery_tag = method.delivery_tag)
-    print "TRabbitMQTransportServer.on_data() - finished"
+    #print "TRabbitMQTransportServer.on_data() - finished"
 
   def write(self, buff):
     self.channel.basic_publish(exchange='',
@@ -110,44 +110,52 @@ class ServerListeningThread(threading.Thread):
 class TRabbitMQTransportServer(TTransportBase):
   """RabbitMQ implementation of TTransport base. Use it for servers"""
 
-  def __init__(self, host='localhost', queue='rpc_queue'):
+  def __init__(self, host='localhost', queue='rpc_queue', debug=False):
     self.data = None
+    self.debug = debug
     self.slt = ServerListeningThread(self, host, queue)
     self.slt.start()
+    if self.debug:
+      print "TRabbitMQTransportServer.__init__() finished"
 
 
   def isOpen(self):
     return True
 
   def open(self):
-    print "TRabbitMQTransportServer.open()"
+    if self.debug:
+      print "TRabbitMQTransportServer.open()"
     pass
 
   def readAll(self, sz):
     return read(sz)
 
   def read(self, sz):
-    print "TRabbitMQTransportServer.read()"
+    if self.debug:
+      print "TRabbitMQTransportServer.read()"
     while self.data is None:
       #self.connection.process_data_events()
       time.sleep(0)
-    print "TRabbitMQTransportServer.read(): "+ self.data
+    #print "TRabbitMQTransportServer.read(): "+ self.data
     d = self.data
     self.data = None
     return d
 
   def write(self, buff):
-    print "TRabbitMQTransportServer.write(): "+buff
+    if self.debug:
+      print "TRabbitMQTransportServer.write(): "+buff
     self.slt.write(buff)
 
   def listen(self):
-    print "TRabbitMQTransportServer.listen()"
+    if self.debug:
+      print "TRabbitMQTransportServer.listen()"
     while self.data is None:
       time.sleep(0)
       #self.slt.connection.process_data_events()
 
   def accept(self):
-    print "TRabbitMQTransportServer.accept()"
+    if self.debug:
+      print "TRabbitMQTransportServer.accept()"
     while self.data is None:
       time.sleep(0)
       #self.connection.process_data_events()
