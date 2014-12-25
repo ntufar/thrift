@@ -74,6 +74,7 @@ libthrift_la_SOURCES = src/thrift/Thrift.cpp \
                        src/thrift/transport/THttpClient.cpp \
                        src/thrift/transport/THttpServer.cpp \
                        src/thrift/transport/TSocket.cpp \
+                       src/thrift/transport/TRabbitMQ.cpp \
                        src/thrift/transport/TPipe.cpp \
                        src/thrift/transport/TPipeServer.cpp \
                        src/thrift/transport/TSSLSocket.cpp \
@@ -184,6 +185,7 @@ include_transport_HEADERS = \
                          src/thrift/transport/THttpClient.h \
                          src/thrift/transport/THttpServer.h \
                          src/thrift/transport/TSocket.h \
+                         src/thrift/transport/TRabbitMQ.h \
                          src/thrift/transport/TPipe.h \
                          src/thrift/transport/TPipeServer.h \
                          src/thrift/transport/TSSLSocket.h \
