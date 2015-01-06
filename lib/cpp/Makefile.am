@@ -32,7 +32,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 
 lib_LTLIBRARIES = libthrift.la
 pkgconfig_DATA = thrift.pc
-libthrift_la_LDFLAGS = -release $(VERSION) $(BOOST_LDFLAGS) $(OPENSSL_LDFLAGS)
+libthrift_la_LDFLAGS = -release $(VERSION) $(BOOST_LDFLAGS) $(OPENSSL_LDFLAGS) /usr/lib/x86_64-linux-gnu/libamqpcpp.so -lrabbitmq
 
 ## We only build the extra libraries if we have the dependencies,
 ## but we install all of the headers unconditionally.
@@ -49,9 +49,9 @@ lib_LTLIBRARIES += libthriftqt.la
 pkgconfig_DATA += thrift-qt.pc
 endif
 
-AM_CXXFLAGS = -Wall -Wextra -pedantic
-AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(OPENSSL_INCLUDES) -I$(srcdir)/src
-AM_LDFLAGS = $(BOOST_LDFLAGS) $(OPENSSL_LDFLAGS)
+AM_CXXFLAGS = -Wall -Wextra -pedantic  /usr/lib/x86_64-linux-gnu/libamqpcpp.so -lrabbitmq
+AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(OPENSSL_INCLUDES) -I$(srcdir)/src  /usr/lib/x86_64-linux-gnu/libamqpcpp.so -lrabbitmq
+AM_LDFLAGS = $(BOOST_LDFLAGS) $(OPENSSL_LDFLAGS) /usr/lib/x86_64-linux-gnu/libamqpcpp.so -lrabbitmq
 
 # Define the source files for the module
 
