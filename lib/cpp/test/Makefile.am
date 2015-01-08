@@ -105,7 +105,8 @@ endif
 
 UnitTests_LDADD = \
   libtestgencpp.la \
-  $(BOOST_TEST_LDADD)
+  $(BOOST_TEST_LDADD) \
+  -lrabbitmq
 
 TransportTest_SOURCES = \
 	TransportTest.cpp
@@ -114,7 +115,8 @@ TransportTest_LDADD = \
   libtestgencpp.la \
   $(top_builddir)/lib/cpp/libthriftz.la \
   $(BOOST_TEST_LDADD) \
-  -lz
+  -lz \
+  -lrabbitmq
 
 ZlibTest_SOURCES = \
 	ZlibTest.cpp
@@ -123,21 +125,24 @@ ZlibTest_LDADD = \
   libtestgencpp.la \
   $(top_builddir)/lib/cpp/libthriftz.la \
   $(BOOST_TEST_LDADD) \
-  -lz
+  -lz \
+  -lrabbitmq
 
 EnumTest_SOURCES = \
   EnumTest.cpp
 
 EnumTest_LDADD = \
   libtestgencpp.la \
-  $(BOOST_TEST_LDADD)
+  $(BOOST_TEST_LDADD) \
+  -lrabbitmq
 
 TFileTransportTest_SOURCES = \
 	TFileTransportTest.cpp
 
 TFileTransportTest_LDADD = \
   libtestgencpp.la \
-  $(BOOST_TEST_LDADD)
+  $(BOOST_TEST_LDADD) \
+  -lrabbitmq
 
 #
 # TFDTransportTest
@@ -146,7 +151,8 @@ TFDTransportTest_SOURCES = \
 	TFDTransportTest.cpp
 
 TFDTransportTest_LDADD = \
-	$(top_builddir)/lib/cpp/libthrift.la
+	$(top_builddir)/lib/cpp/libthrift.la \
+	-lrabbitmq
 
 
 #
@@ -156,7 +162,8 @@ TPipedTransportTest_SOURCES = \
 	TPipedTransportTest.cpp
 
 TPipedTransportTest_LDADD = \
-	$(top_builddir)/lib/cpp/libthrift.la
+	$(top_builddir)/lib/cpp/libthrift.la \
+	-lrabbitmq
 
 #
 # AllProtocolsTest
@@ -228,7 +235,8 @@ concurrency_test_SOURCES = \
 	concurrency/TimerManagerTests.h
 
 concurrency_test_LDADD = \
-  $(top_builddir)/lib/cpp/libthrift.la
+  $(top_builddir)/lib/cpp/libthrift.la \
+  -lrabbitmq
 
 link_test_SOURCES = \
   link/LinkTest.cpp \

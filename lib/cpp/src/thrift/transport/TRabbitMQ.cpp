@@ -31,7 +31,7 @@ namespace thrift {
 namespace transport {
 
 using namespace std;
-     
+
 /**
  * TRabbitMQ implementation.
  *
