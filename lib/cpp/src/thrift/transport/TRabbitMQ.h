@@ -26,7 +26,7 @@
 #include <thrift/transport/TVirtualTransport.h>
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/PlatformSocket.h>
-
+#include "AMQPcpp.h"
 
 namespace apache {
 namespace thrift {
@@ -295,6 +295,14 @@ private:
 	std::string outputBuffer;
   void unix_open();
   void local_open();
+  bool connectionOpen;
+  AMQP amqp;
+  AMQPExchange * ex;
+  AMQPQueue * qu2;
+
+  std::string response;
+  std::string corr_id;
+
 };
 }
 }

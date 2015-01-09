@@ -135,7 +135,7 @@ class TRabbitMQTransportServer(TTransportBase):
       print "TRabbitMQTransportServer.read()"
     while self.data is None:
       #self.connection.process_data_events()
-      time.sleep(0)
+      time.sleep(0.01)
     #print "TRabbitMQTransportServer.read(): "+ self.data
     d = self.data
     self.data = None
@@ -150,14 +150,14 @@ class TRabbitMQTransportServer(TTransportBase):
     if self.debug:
       print "TRabbitMQTransportServer.listen()"
     while self.data is None:
-      time.sleep(0)
+      time.sleep(0.01)
       #self.slt.connection.process_data_events()
 
   def accept(self):
     if self.debug:
       print "TRabbitMQTransportServer.accept()"
     while self.data is None:
-      time.sleep(0)
+      time.sleep(0.01)
       #self.connection.process_data_events()
     return self
 
