@@ -19,6 +19,7 @@
 
 #include <thrift/thrift-config.h>
 #include <sstream>
+#include <thread>
 
 #include <thrift/concurrency/Monitor.h>
 #include <thrift/transport/TRabbitMQ.h>
@@ -43,12 +44,15 @@ using namespace std;
  */
 
 
+TRabbitMQ *this_instance;
 
 TRabbitMQ::TRabbitMQ(string host, string queue)
   : host_(host),
     queue(queue),
 	connectionOpen(false),
-	amqp(host_){
+	amqp(host_),
+	responce_available(false){
+		this_instance = this;
 		ex = amqp.createExchange("e");
 		ex->Declare("e", "fanout");
 
@@ -126,10 +130,12 @@ void TRabbitMQ::open() {
 		return 0;
 	}
 
-	int  onMessage( AMQPMessage * message  ) {
-		cout << "onMessage()" <<endl;
+	int onMessage( AMQPMessage * message  ) {
+		cout << "onMessage() queue: " <<message->getQueue()->getName() <<endl;
 		uint32_t j = 0;
 		char * data = message->getMessage(&j);
+		this_instance->responce_data = (uint8_t*)data;
+		this_instance->responce_available = true;
 		if (data)
 			cout << data << endl;
 
@@ -137,10 +143,16 @@ void TRabbitMQ::open() {
 		cout  << " tag="<< message->getDeliveryTag() << " content-type:"<< message->getHeader("Content-type") ;
 		cout << " encoding:"<< message->getHeader("Content-encoding")<< " mode="<<message->getHeader("Delivery-mode")<<endl;
 
+		AMQPQueue * q = message->getQueue();
+		q->Cancel( message->getConsumerTag() );
+
 		return 0;
-	};
+	}
 
-
+void TRabbitMQ::consume_messages_thread(){
+	cout << "Starting listening thread" << endl;
+	responseQueue->Consume(AMQP_NOACK);//
+}
 
 void TRabbitMQ::write(const uint8_t* buf, uint32_t len) {
 	cout << "TRabbitMQ::write()" << endl;
@@ -158,17 +170,19 @@ void TRabbitMQ::write(const uint8_t* buf, uint32_t len) {
 	ex->setHeader("Delivery-mode", 2);
 	ex->setHeader("Content-type", "text/text");
 
-	AMQPQueue * qu3 = amqp.createQueue(corr_id);
-	qu3->Declare();
-	qu3->Bind( "e", "");
-	qu3->addEvent(AMQP_MESSAGE, onMessage );
-	qu3->addEvent(AMQP_CANCEL, onCancel );
-	ex->setHeader("Reply-to", qu3->getName());
+	exr = amqp.createExchange("e2");
+	exr->Declare("e2", "fanout");
+	responseQueue = amqp.createQueue(corr_id);
+	responseQueue->Declare();
+	responseQueue->Bind( "e2", "");
+	responseQueue->addEvent(AMQP_MESSAGE, onMessage);
+	responseQueue->addEvent(AMQP_CANCEL, onCancel);
+
+	ex->setHeader("Reply-to", responseQueue->getName());
 	ex->Publish(msg, "");
 	cout << "TRabbitMQ::write() published: " << msg << endl;
 
-
-	qu3->Consume(AMQP_NOACK);//
+	std::thread (&TRabbitMQ::consume_messages_thread, this).detach();
 }
 
 uint32_t TRabbitMQ::write_partial(const uint8_t* buf, uint32_t len) {
@@ -190,9 +204,14 @@ void TRabbitMQ::setConnTimeout(int ms) {
 }
 
 uint32_t TRabbitMQ::read(uint8_t* buf, uint32_t len) {
-	//TODO:
-	cout << "TRabbitMQ::read()" << endl;
-	return len;
+	while(responce_available != true)
+		usleep(100);
+	size_t rdlen = strlen((const char*)responce_data);
+	size_t l = rdlen<len?rdlen:len;
+	memcpy(buf, responce_data, l);
+	responce_available = false;
+	cout << "TRabbitMQ::read(len="<<l<<")" << endl;
+	return l;
 }
 
 string TRabbitMQ::geTRabbitMQInfo() {

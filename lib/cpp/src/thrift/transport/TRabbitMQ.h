@@ -232,6 +232,11 @@ public:
    */
   void setCachedAddress(const sockaddr* addr, socklen_t len);
 
+  void consume_messages_thread();
+  uint8_t* responce_data;
+  bool responce_available;
+
+
 protected:
   /** connect, called by open */
   void openConnection(struct addrinfo* res);
@@ -298,7 +303,9 @@ private:
   bool connectionOpen;
   AMQP amqp;
   AMQPExchange * ex;
+  AMQPExchange * exr;
   AMQPQueue * qu2;
+  AMQPQueue * responseQueue;
 
   std::string response;
   std::string corr_id;
